@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Técnico & Selector de Bombas Centrífugas (85 Variables)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkbg: '#0a0e17',
+                        cardbg: '#131b2e',
+                        cardborder: '#1e293b',
+                        panelbg: '#1a243b',
+                        accent: '#6366f1'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #080c14;
+            color: #f1f5f9;
+        }
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0d1321;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #22304a;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #334668;
+        }
+        .active-tab {
+            background-color: #4f46e5 !important;
+            color: #ffffff !important;
+            border-color: #6366f1 !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased">
+
+    <!-- Top Header Navigation -->
+    <header class="bg-cardbg border-b border-cardborder sticky top-0 z-50 shadow-2xl">
+        <div class="max-w-[1700px] mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center space-x-3.5">
+                <div class="bg-gradient-to-tr from-indigo-700 to-indigo-500 p-2.5 rounded-xl text-white shadow-lg shadow-indigo-600/30">
+                    <i class="fa-solid fa-industry text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-extrabold tracking-tight text-white flex items-center gap-2">
+                        PUMP-MASTER 85 <span class="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">360 BROWSER OPTIMIZED</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Plataforma Integral de Ingeniería, Evaluación y Selección de Bombas Centrífugas (85 Variables)</p>
+                </div>
+            </div>
+
+            <!-- Header Quick Stats & Controls -->
+            <div class="flex items-center space-x-3">
+                <div class="hidden sm:flex items-center gap-3 bg-slate-900/80 px-3.5 py-1.5 rounded-xl border border-cardborder text-xs">
+                    <div class="flex items-center gap-2">
+                        <span id="globalStatusDot" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span id="globalStatusText" class="font-bold text-slate-200">Operación Óptima BEP</span>
+                    </div>
+                </div>
+
+                <button onclick="toggleDatasheetModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition flex items-center gap-2 shadow-lg shadow-indigo-600/20">
+                    <i class="fa-solid fa-file-contract"></i> Ficha 85 Variables
+                </button>
+                <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold px-3 py-2 rounded-xl border border-cardborder transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-print"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-[1700px] w-full mx-auto p-4 lg:p-6 space-y-6">
+
+        <!-- SECTION 1: Master Controls & Filters -->
+        <section class="bg-cardbg rounded-2xl p-5 border border-cardborder shadow-xl">
+            <div class="flex items-center justify-between border-b border-cardborder pb-3 mb-4">
+                <div class="flex items-center gap-2 text-indigo-400 font-bold text-sm uppercase tracking-wider">
+                    <i class="fa-solid fa-sliders"></i>
+                    <h2>1. Parámetros Principales & ComboBoxes de Selección</h2>
+                </div>
+                <span class="text-xs text-slate-400 font-mono">12 Marcas | 15 Potencias | 85 Variables</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                
+                <!-- ComboBox 1: Brand Selection -->
+                <div class="space-y-1.5">
+                    <label for="brandSelect" class="block text-xs font-bold uppercase tracking-wider text-slate-400 flex justify-between">
+                        <span>1. Marca del Fabricante (12 Lideres)</span>
+                        <i class="fa-solid fa-copyright text-indigo-400"></i>
+                    </label>
+                    <select id="brandSelect" onchange="updateSystem()" class="w-full bg-slate-900 text-slate-100 border border-cardborder rounded-xl px-3.5 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 transition cursor-pointer">
+                        <option value="Grundfos" selected>Grundfos (Dinamarca)</option>
+                        <option value="KSB">KSB (Alemania)</option>
+                        <option value="Flowserve">Flowserve (EE. UU.)</option>
+                        <option value="Sulzer">Sulzer (Suiza)</option>
+                        <option value="Xylem">Xylem / Goulds / Flygt (EE. UU.)</option>
+                        <option value="Ebara">Ebara (Japón)</option>
+                        <option value="Wilo">Wilo (Alemania)</option>
+                        <option value="ITT Goulds Pumps">ITT Goulds Pumps (EE. UU.)</option>
+                        <option value="Warman">The Weir Group / Warman (Reino Unido)</option>
+                        <option value="Pentair">Pentair (EE. UU.)</option>
+                        <option value="Franklin Electric">Franklin Electric (EE. UU.)</option>
+                        <option value="Andritz">Andritz (Austria)</option>
+                    </select>
+                </div>
+
+                <!-- ComboBox 2: HP Rating Selection -->
+                <div class="space-y-1.5">
+                    <label for="hpSelect" class="block text-xs font-bold uppercase tracking-wider text-slate-400 flex justify-between">
+                        <span>2. Potencia del Motor (15 Rangos HP)</span>
+                        <i class="fa-solid fa-bolt text-amber-400"></i>
+                    </label>
+                    <select id="hpSelect" onchange="updateSystem()" class="w-full bg-slate-900 text-slate-100 border border-cardborder rounded-xl px-3.5 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 transition cursor-pointer">
+                        <option value="0.5">0.5 HP (0.37 kW)</option>
+                        <option value="1.0">1.0 HP (0.75 kW)</option>
+                        <option value="2.0">2.0 HP (1.5 kW)</option>
+                        <option value="5.0">5.0 HP (3.7 kW)</option>
+                        <option value="7.5">7.5 HP (5.5 kW)</option>
+                        <option value="10" selected>10 HP (7.5 kW)</option>
+                        <option value="15">15 HP (11 kW)</option>
+                        <option value="25">25 HP (18.5 kW)</option>
+                        <option value="50">50 HP (37 kW)</option>
+                        <option value="75">75 HP (55 kW)</option>
+                        <option value="100">100 HP (75 kW)</option>
+                        <option value="150">150 HP (110 kW)</option>
+                        <option value="200">200 HP (150 kW)</option>
+                        <option value="300">300 HP (220 kW)</option>
+                        <option value="500">500 HP (370 kW)</option>
+                    </select>
+                </div>
+
+                <!-- ComboBox 3: Dynamic Selector of ALL 85 Variables -->
+                <div class="space-y-1.5">
+                    <label for="variableSelect" class="block text-xs font-bold uppercase tracking-wider text-slate-400 flex justify-between">
+                        <span>3. Variable Técnica (85 Disponibles)</span>
+                        <i class="fa-solid fa-list-check text-emerald-400"></i>
+                    </label>
+                    <select id="variableSelect" onchange="onVariableSelectChange()" class="w-full bg-slate-900 text-slate-100 border border-cardborder rounded-xl px-3.5 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 transition cursor-pointer font-mono text-xs">
+                        <!-- Populated via JavaScript -->
+                    </select>
+                </div>
+
+            </div>
+
+            <!-- Quick Filter Tabs -->
+            <div class="mt-4 pt-3 border-t border-cardborder flex flex-wrap items-center justify-between gap-2">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Filtro Rápido de Módulos:</span>
+                <div class="flex flex-wrap items-center gap-1.5 text-xs">
+                    <button onclick="filterVariables('ALL')" id="tabALL" class="px-3 py-1.5 rounded-lg border border-cardborder bg-slate-900 text-slate-300 font-medium hover:bg-slate-800 transition active-tab">Todas (85)</button>
+                    <button onclick="filterVariables('TOP8')" id="tabTOP8" class="px-3 py-1.5 rounded-lg border border-cardborder bg-slate-900 text-slate-300 font-medium hover:bg-slate-800 transition text-amber-300">★ 8 Claves Comprador</button>
+                    <button onclick="filterVariables('B1')" id="tabB1" class="px-3 py-1.5 rounded-lg border border-cardborder bg-slate-900 text-slate-300 font-medium hover:bg-slate-800 transition">B1: Proceso (20)</button>
+                    <button onclick="filterVariables('B2')" id="tabB2" class="px-3 py-1.5 rounded-lg border border-cardborder bg-slate-900 text-slate-300 font-medium hover:bg-slate-800 transition">B2: Mecánica (25)</button>
+                    <button onclick="filterVariables('B3')" id="tabB3" class="px-3 py-1.5 rounded-lg border border-cardborder bg-slate-900 text-slate-300 font-medium hover:bg-slate-800 transition">B3: Electricidad (20)</button>
+                    <button onclick="filterVariables('B4')" id="tabB4" class="px-3 py-1.5 rounded-lg border border-cardborder bg-slate-900 text-slate-300 font-medium hover:bg-slate-800 transition">B4: Mantenimiento/NDT (20)</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: Hydraulics Chart + Interactive System Simulator -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Dynamic 5-Curve Hydraulics Chart -->
+            <div class="lg:col-span-2 bg-cardbg rounded-2xl p-5 border border-cardborder shadow-xl flex flex-col justify-between">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <div>
+                        <h3 class="text-base font-extrabold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-chart-area text-indigo-400"></i>
+                            Curvas Hidráulicas & Dinámica del Sistema (5 Curvas)
+                        </h3>
+                        <p class="text-xs text-slate-400">Modelado dinámico de Q-H, Curva de Tubería, Eficiencia, Potencia BHP y NPSHr/NPSHa</p>
+                    </div>
+                    <div class="flex items-center gap-3 text-[11px] font-medium flex-wrap">
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span> Q-H Bomba</span>
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Curva Sistema</span>
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Eficiencia (%)</span>
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Potencia (BHP)</span>
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span> NPSHr (m)</span>
+                    </div>
+                </div>
+
+                <!-- Canvas -->
+                <div class="relative w-full h-[360px] bg-slate-950/70 rounded-xl p-2 border border-cardborder/60">
+                    <canvas id="mainChart"></canvas>
+                </div>
+
+                <div class="mt-3 grid grid-cols-2 sm:grid-cols-4 text-center text-xs text-slate-400 bg-slate-900/80 p-2.5 rounded-xl border border-cardborder/50 gap-2">
+                    <div>Shut-off: <b id="lblShutOff" class="text-slate-100 font-mono">0 m</b></div>
+                    <div>Caudal BEP: <b id="lblBepQ" class="text-emerald-400 font-mono">0 m³/h</b></div>
+                    <div>NPSHr en BEP: <b id="lblBepNpsh" class="text-cyan-400 font-mono">0 m</b></div>
+                    <div>Presión Máx (MAWP): <b id="lblMawp" class="text-rose-400 font-mono">0 bar</b></div>
+                </div>
+            </div>
+
+            <!-- Operating Simulator -->
+            <div class="bg-cardbg rounded-2xl p-5 border border-cardborder shadow-xl flex flex-col justify-between space-y-4">
+                <div>
+                    <div class="flex items-center justify-between border-b border-cardborder pb-2.5 mb-3">
+                        <h3 class="font-extrabold text-white text-base flex items-center gap-2">
+                            <i class="fa-solid fa-sliders text-amber-400"></i>
+                            Simulador de Operación
+                        </h3>
+                        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">Ajuste en Vivo</span>
+                    </div>
+
+                    <p class="text-xs text-slate-400 mb-4">
+                        Modifica los parámetros de operación en tiempo real para evaluar el rendimiento hidráulico y predecir cavitación o sobrecargas térmicas.
+                    </p>
+
+                    <!-- Slider 1: Flow Rate Q -->
+                    <div class="space-y-1.5 mb-3">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <span class="text-slate-300">Caudal del Sistema ($Q$)</span>
+                            <span class="text-indigo-400 font-mono font-bold" id="simQVal">25 m³/h</span>
+                        </div>
+                        <input type="range" id="simQRange" min="2" max="150" step="1" value="25" oninput="runSimulation()" class="w-full accent-indigo-500 bg-slate-900 h-2 rounded-lg cursor-pointer">
+                    </div>
+
+                    <!-- Slider 2: Head TDH -->
+                    <div class="space-y-1.5 mb-3">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <span class="text-slate-300">Altura Requerida ($TDH$)</span>
+                            <span class="text-amber-400 font-mono font-bold" id="simHVal">30 m</span>
+                        </div>
+                        <input type="range" id="simHRange" min="2" max="120" step="1" value="30" oninput="runSimulation()" class="w-full accent-amber-500 bg-slate-900 h-2 rounded-lg cursor-pointer">
+                    </div>
+
+                    <!-- Slider 3: Viscosity cSt -->
+                    <div class="space-y-1.5 mb-3">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <span class="text-slate-300">Viscosidad del Fluido</span>
+                            <span class="text-purple-400 font-mono font-bold" id="simViscVal">1 cSt</span>
+                        </div>
+                        <input type="range" id="simViscRange" min="1" max="200" step="1" value="1" oninput="runSimulation()" class="w-full accent-purple-500 bg-slate-900 h-2 rounded-lg cursor-pointer">
+                    </div>
+
+                    <!-- Slider 4: Fluid Temperature -->
+                    <div class="space-y-1.5 mb-4">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <span class="text-slate-300">Temperatura Fluido (°C)</span>
+                            <span class="text-rose-400 font-mono font-bold" id="simTempVal">20 °C</span>
+                        </div>
+                        <input type="range" id="simTempRange" min="5" max="140" step="1" value="20" oninput="runSimulation()" class="w-full accent-rose-500 bg-slate-900 h-2 rounded-lg cursor-pointer">
+                    </div>
+
+                    <!-- Diagnostic Box -->
+                    <div id="simDiagBox" class="p-3.5 rounded-xl border bg-slate-900/90 border-slate-700 text-xs space-y-1.5 transition">
+                        <div class="flex items-center font-bold gap-2 text-slate-200" id="simDiagTitle">
+                            <i class="fa-solid fa-circle-check text-emerald-400"></i> Evaluación de Trabajo
+                        </div>
+                        <p class="text-slate-300 leading-relaxed text-[11px]" id="simDiagDesc">
+                            Calculando parámetros dinámicos...
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Live Metrics Summary -->
+                <div class="grid grid-cols-3 gap-2 text-center text-xs pt-2 border-t border-cardborder">
+                    <div class="bg-slate-900/60 p-2 rounded-lg border border-cardborder/40">
+                        <span class="text-slate-500 block text-[10px]">Eficiencia</span>
+                        <span id="simEff" class="font-bold text-emerald-400 font-mono">0%</span>
+                    </div>
+                    <div class="bg-slate-900/60 p-2 rounded-lg border border-cardborder/40">
+                        <span class="text-slate-500 block text-[10px]">Consumo Eje</span>
+                        <span id="simPower" class="font-bold text-amber-400 font-mono">0 HP</span>
+                    </div>
+                    <div class="bg-slate-900/60 p-2 rounded-lg border border-cardborder/40">
+                        <span class="text-slate-500 block text-[10px]">Margen NPSH</span>
+                        <span id="simNpshMargin" class="font-bold text-cyan-400 font-mono">+0.0m</span>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- SECTION 3: Deep Technical Variable Inspector -->
+        <section class="bg-cardbg rounded-2xl p-5 border border-cardborder shadow-xl">
+            <div class="flex flex-wrap items-center justify-between border-b border-cardborder pb-3 mb-4 gap-2">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-microscope text-cyan-400 text-lg"></i>
+                    <div>
+                        <h3 class="font-extrabold text-white text-base">Inspector Técnico Detallado de Variable</h3>
+                        <p class="text-xs text-slate-400">Especificación técnica completa de la variable seleccionada en el ComboBox 3</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span id="inspBlockBadge" class="text-xs font-mono font-bold px-3 py-1 bg-indigo-950 text-indigo-300 rounded-lg border border-indigo-800">MÓDULO 1</span>
+                    <span id="inspVarNum" class="text-xs font-mono font-bold px-3 py-1 bg-slate-800 text-slate-300 rounded-lg border border-slate-700">VAR #1 / 85</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Main Inspector Specs -->
+                <div class="lg:col-span-2 space-y-4">
+                    <div>
+                        <h4 id="inspName" class="text-xl font-bold text-indigo-300 mb-1">1. Caudal Nominal o de Diseño (Q)</h4>
+                        <p id="inspDesc" class="text-xs text-slate-300 leading-relaxed">
+                            Cargando descripción...
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                        <div class="bg-slate-900/80 p-3 rounded-xl border border-cardborder">
+                            <span class="text-slate-400 text-[10px] uppercase font-bold text-indigo-400 block mb-1">Rango / Unidades</span>
+                            <span id="inspUnits" class="font-mono text-slate-200 font-semibold">m³/h, GPM, L/s</span>
+                        </div>
+                        <div class="bg-slate-900/80 p-3 rounded-xl border border-cardborder">
+                            <span class="text-slate-400 text-[10px] uppercase font-bold text-amber-400 block mb-1">Norma Aplicable</span>
+                            <span id="inspNorm" class="font-mono text-slate-200 font-semibold">ISO 5199 / API 610</span>
+                        </div>
+                        <div class="bg-slate-900/80 p-3 rounded-xl border border-cardborder">
+                            <span class="text-slate-400 text-[10px] uppercase font-bold text-rose-400 block mb-1">Criterio Aceptación</span>
+                            <span id="inspAcceptance" class="font-mono text-slate-200 font-semibold">± 5% del punto BEP</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900/50 p-4 rounded-xl border border-cardborder space-y-2">
+                        <h5 class="text-xs font-bold text-slate-200 flex items-center gap-2">
+                            <i class="fa-solid fa-triangle-exclamation text-amber-400"></i>
+                            Riesgo de Incumplimiento o Fuera de Especificación
+                        </h5>
+                        <p id="inspRisk" class="text-xs text-slate-300 leading-relaxed">
+                            Cargando diagnóstico de riesgo...
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Inspection Checklist for Buyers -->
+                <div class="bg-slate-900/70 p-4 rounded-xl border border-cardborder flex flex-col justify-between">
+                    <div>
+                        <h5 class="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-3 flex items-center gap-2 border-b border-cardborder pb-2">
+                            <i class="fa-solid fa-clipboard-check"></i>
+                            Checklist de Verificación para Compradores
+                        </h5>
+                        <ul id="inspChecklist" class="space-y-2 text-xs text-slate-300 list-disc list-inside leading-relaxed">
+                            <li>Cargando ítems de verificación...</li>
+                        </ul>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-cardborder/60 text-[11px] text-slate-400 flex items-center justify-between">
+                        <span>Relevancia Comprador:</span>
+                        <span id="inspImportance" class="font-bold text-amber-400">★ CRÍTICO</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION 4: Master 85-Variable Data Grid Matrix -->
+        <section class="bg-cardbg rounded-2xl p-5 border border-cardborder shadow-xl space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-4 border-b border-cardborder pb-3">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-table text-indigo-400 text-lg"></i>
+                    <div>
+                        <h3 class="font-extrabold text-white text-base">Matriz Maestra de las 85 Variables Técnicas</h3>
+                        <p class="text-xs text-slate-400">Catálogo ordenado con filtrado dinámico y búsqueda rápida</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-500 text-xs"></i>
+                        <input type="text" id="matrixSearch" oninput="renderMatrixTable()" placeholder="Buscar variable o código..." class="bg-slate-900 text-xs text-slate-200 border border-cardborder rounded-xl pl-8 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-60">
+                    </div>
+                    <span id="matrixCount" class="text-xs font-mono font-bold px-2.5 py-1 bg-slate-800 text-indigo-400 rounded-lg border border-slate-700">85 Items</span>
+                </div>
+            </div>
+
+            <!-- Table Container -->
+            <div class="overflow-x-auto rounded-xl border border-cardborder bg-slate-950/60 max-h-[420px] overflow-y-auto">
+                <table class="w-full text-left text-xs text-slate-300">
+                    <thead class="bg-slate-900 text-slate-400 uppercase text-[10px] font-bold sticky top-0 border-b border-cardborder">
+                        <tr>
+                            <th class="p-3 w-12 text-center">Nº</th>
+                            <th class="p-3 w-28">Código</th>
+                            <th class="p-3">Variable Técnica</th>
+                            <th class="p-3">Categoría / Módulo</th>
+                            <th class="p-3 font-mono">Valor Estimado</th>
+                            <th class="p-3">Unidad</th>
+                            <th class="p-3 text-center">Clave Comprador</th>
+                        </tr>
+                    </thead>
+                    <tbody id="matrixTableBody" class="divide-y divide-cardborder/40 font-medium">
+                        <!-- Populated via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- SECTION 5: Full 85-Variable Datasheet Modal -->
+    <div id="datasheetModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-cardbg border border-cardborder rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            <div class="p-4 border-b border-cardborder flex items-center justify-between bg-slate-900">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-file-contract text-indigo-400"></i>
+                    <h3 class="font-bold text-white text-base">Ficha Técnica Completa de Especificación (85 Variables)</h3>
+                </div>
+                <button onclick="toggleDatasheetModal()" class="text-slate-400 hover:text-white text-lg px-2">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="p-6 overflow-y-auto space-y-6 text-xs text-slate-300 font-mono">
+                <!-- Header Sheet Meta -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-xl bg-slate-900 border border-cardborder">
+                    <div>
+                        <span class="text-slate-500 block text-[10px]">FABRICANTE</span>
+                        <b id="dsBrand" class="text-indigo-300 font-sans text-sm">Grundfos</b>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 block text-[10px]">POTENCIA MOTOR</span>
+                        <b id="dsHp" class="text-amber-400 font-sans text-sm">10 HP / 7.5 kW</b>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 block text-[10px]">FECHA EMISIÓN</span>
+                        <b class="text-slate-200">2026-11-11</b>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 block text-[10px]">CÓDIGO DOCUMENTO</span>
+                        <b class="text-emerald-400">SPEC-85-FULL</b>
+                    </div>
+                </div>
+
+                <!-- 4 Categorized Specification Grid Blocks -->
+                <div class="space-y-6" id="dsBlocksContainer">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </div>
+
+            <div class="p-4 border-t border-cardborder bg-slate-900 flex justify-between items-center">
+                <span class="text-xs text-slate-400 font-sans">Documento oficial normalizado de ingeniería industrial.</span>
+                <div class="flex gap-2">
+                    <button onclick="window.print()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-4 py-2 rounded-xl transition font-sans font-bold">
+                        <i class="fa-solid fa-print"></i> Imprimir Ficha
+                    </button>
+                    <button onclick="toggleDatasheetModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-4 py-2 rounded-xl transition font-sans">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-cardbg border-t border-cardborder mt-8 py-4">
+        <div class="max-w-[1700px] mx-auto px-4 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-2">
+            <p>© 2026 Pump Selection & Industrial Engineering Platform. Compatibilidad certificada con 360 Browser.</p>
+            <p class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span> 85/85 Variables Técnicas Validadas
+            </p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Data & Engine -->
+    <script>
+        // MASTER DATABASE OF ALL 85 VARIABLES
+        const masterVariables = [
+            // BLOCK 1: Process, Capacity & Performance (1 to 20)
+            { id: 1, block: "B1", code: "VAR-01", name: "Caudal nominal o de diseño (Q)", unit: "m³/h", top8: true, norm: "ISO 5199", accept: "± 5% del BEP", desc: "Volumen de fluido desplazado por unidad de tiempo. Define la capacidad volumétrica principal.", risk: "Insuficiente caudal paraliza el proceso; exceso genera cavitación y sobrecarga.", check: ["Verificar si coincide con el BEP", "Comprobar velocidad en succión < 2.5 m/s", "Validar margen de regulación"] },
+            { id: 2, block: "B1", code: "VAR-02", name: "Caudal mínimo continuo térmico / estable", unit: "m³/h", top8: false, norm: "API 610", accept: "15-25% del BEP", desc: "Flujo mínimo para evitar sobrecalentamiento o recirculación dañina.", risk: "Operar por debajo evapora el fluido y destruye el sello mecánico.", check: ["Verificar línea de bypass o recirculación", "Confirmar valor de flujo térmico seguro"] },
+            { id: 3, block: "B1", code: "VAR-03", name: "Caudal en el Punto de Máxima Eficiencia (BEP)", unit: "m³/h", top8: false, norm: "ISO 5199", accept: "Punto central", desc: "Punto exacto de la curva de mejor rendimiento hidráulico.", risk: "Alejarse del BEP incrementa fuerzas radiales destructivas.", check: ["Asegurar que el punto de trabajo esté entre 80% y 110% del BEP"] },
+            { id: 4, block: "B1", code: "VAR-04", name: "Altura Manométrica Total (TDH / H)", unit: "m.c.a.", top8: true, norm: "HI / ISO", accept: "0 a +5%", desc: "Presión total que la bomba debe vencer (fricción + elevación).", risk: "Si el TDH real supera el de la bomba, no habrá flujo de fluido.", check: ["Calcular pérdidas por fricción exactas", "Incluir presión estática y de destino"] },
+            { id: 5, block: "B1", code: "VAR-05", name: "Presión máxima de descarga (Shut-off)", unit: "bar", top8: false, norm: "API 610", accept: "Según curva", desc: "Presión a caudal cero con válvula de descarga cerrada.", risk: "Exceder la presión nominal puede reventar la tubería o carcasa.", check: ["Verificar presión máxima de diseño de tuberías", "Validar calibración de válvula de alivio"] },
+            { id: 6, block: "B1", code: "VAR-06", name: "NPSH Requerido (NPSHr)", unit: "m", top8: true, norm: "HI 1.6", accept: "NPSHa > NPSHr+0.5m", desc: "Carga de succión mínima para evitar vaporización del fluido.", risk: "Cavitación destructiva, picadura del impulsor y ruina de rodamientos.", check: ["Comparar contra NPSH disponible en planta", "Exigir curva NPSHr de taller de pruebas"] },
+            { id: 7, block: "B1", code: "VAR-07", name: "NPSH Disponible (NPSHa)", unit: "m", top8: false, norm: "Ingeniería Planta", accept: "Margen amplio", desc: "Energía de succión real presente en la instalación de planta.", risk: "Si NPSHa < NPSHr la bomba cavitará de inmediato.", check: ["Considerar la presión de vapor a temperatura de trabajo", "Sumar altura estática de succión"] },
+            { id: 8, block: "B1", code: "VAR-08", name: "Eficiencia hidráulica en el BEP", unit: "%", top8: false, norm: "ISO 9906", accept: "Grade 1B / 2B", desc: "Rendimiento de transformación de energía mecánica a hidráulica.", risk: "Baja eficiencia eleva drásticamente la factura eléctrica.", check: ["Revisar clase de eficiencia hidráulica", "Evaluar costo de ciclo de vida (LCC)"] },
+            { id: 9, block: "B1", code: "VAR-09", name: "Potencia consumida en el eje (BHP / Pa)", unit: "HP", top8: false, norm: "ISO 9906", accept: "< Potencia Motor", desc: "Potencia mecánica real demandada por la bomba en la flecha.", risk: "Superar la potencia nominal sobrecalentará el motor.", check: ["Verificar consumo de potencia en todo el rango de la curva"] },
+            { id: 10, block: "B1", code: "VAR-10", name: "Nivel de ruido operacional", unit: "dB(A)", top8: false, norm: "ISO 3744", accept: "< 85 dB(A)", desc: "Ruido acústico generado durante la operación nominal.", risk: "Incumplimiento de normas de salud ocupacional.", check: ["Requerir atenuador acústico o insonorización si excede 85 dB"] },
+            { id: 11, block: "B1", code: "VAR-11", name: "Temperatura máxima del fluido", unit: "°C", top8: false, norm: "Fabricante", accept: "Límite técnico", desc: "Máxima temperatura tolerada por sellos y juntas.", risk: "Degradación térmica de elastómeros y dilatación no controlada.", check: ["Confirmar elastómeros compatibles (Viton, Kalrez)"] },
+            { id: 12, block: "B1", code: "VAR-12", name: "Temperatura mínima del fluido", unit: "°C", top8: false, norm: "Fabricante", accept: "Límite congelamiento", desc: "Temperatura mínima antes de alteración metalúrgica o congelación.", risk: "Fragilización de materiales metálicos y cristalización.", check: ["Verificar resiliencia al impacto a baja temperatura"] },
+            { id: 13, block: "B1", code: "VAR-13", name: "Viscosidad máxima del fluido", unit: "cSt", top8: false, norm: "HI 9.6.7", accept: "< 150 cSt", desc: "Resistencia al flujo del líquido bombeado.", risk: "Alta viscosidad reduce drásticamente el caudal y desploma el TDH.", check: ["Aplicar factores de corrección del Hydraulic Institute"] },
+            { id: 14, block: "B1", code: "VAR-14", name: "Densidad / Gravidez específica (SG)", unit: "-", top8: false, norm: "Física", accept: "Valor de diseño", desc: "Relación de peso respecto al agua limpia (1.0).", risk: "Mayor densidad requiere directamente mayor potencia de motor.", check: ["Multiplicar la potencia BHP por la gravedad específica SG"] },
+            { id: 15, block: "B1", code: "VAR-15", name: "Porcentaje máximo de sólidos", unit: "%", top8: false, norm: "Fabricante", accept: "Según impulsor", desc: "Concentración de partículas sólidas permitidas en el líquido.", risk: "Atascamiento del impulsor y desgaste abrasivo acelerado.", check: ["Seleccionar impulsor abierto o tipo Vortex si % sólidos > 5%"] },
+            { id: 16, block: "B1", code: "VAR-16", name: "Tamaño máximo de esfera pasante", unit: "mm", top8: false, norm: "Prueba Física", accept: "Paso libre", desc: "Diámetro de sólido que puede atravesar el impulsor sin atrancarse.", risk: "Obstrucción interna y rotura de álabes.", check: ["Comparar contra el tamaño de grano máximo del proceso"] },
+            { id: 17, block: "B1", code: "VAR-17", name: "Velocidad específica (Ns)", unit: "rpm", top8: false, norm: "Diseño", accept: "Adimensional", desc: "Índice que define la forma geométrica del impulsor.", risk: "Mal diseño causa ineficiencia e inestabilidad hidráulica.", check: ["Validar si se requiere flujo radial, mixto o axial"] },
+            { id: 18, block: "B1", code: "VAR-18", name: "Velocidad específica de succión (Nss)", unit: "rpm", top8: false, norm: "API 610", accept: "8,500 - 11,000", desc: "Indicador de la predisposición a la cavitación.", risk: "Valores Nss > 11,000 provocan recirculación en la entrada.", check: ["Asegurar Nss dentro de los límites de estabilidad de API 610"] },
+            { id: 19, block: "B1", code: "VAR-19", name: "Presión máxima de succión permitida", unit: "bar", top8: false, norm: "Estructural", accept: "< MAWP - Shutoff", desc: "Límite de presión a la entrada de la bomba.", risk: "Sobrepresión que excede el límite estructural de la carcasa.", check: ["Verificar en sistemas con bombas en serie o presurizados"] },
+            { id: 20, block: "B1", code: "VAR-20", name: "Forma de la curva Q-H", unit: "Tipo", top8: false, norm: "Hydraulic Inst.", accept: "Continuamente decreciente", desc: "Pendiente geométrica de la curva hidráulica (Plana, Empinada).", risk: "Curvas con punto de inflexión provocan caza / inestabilidad.", check: ["Evitar curvas con pendiente positiva cerca del Shut-off"] },
+
+            // BLOCK 2: Mechanical & Material Variables (21 to 45)
+            { id: 21, block: "B2", code: "VAR-21", name: "Tipo de impulsor", unit: "Tipo", top8: false, norm: "ISO / API", accept: "Cerrado / Semiabierto", desc: "Geometría de los álabes (Cerrado, semiabierto, abierto, vórtice).", risk: "Impulsor incorrecto se atasca o degrada su eficiencia.", check: ["Usar cerrado para agua limpia, semiabierto para sólidos"] },
+            { id: 22, block: "B2", code: "VAR-22", name: "Número de etapas", unit: "Unid", top8: false, norm: "Diseño", accept: "1 a 12 etapas", desc: "Cantidad de impulsores dispuestos en serie sobre el mismo eje.", risk: "Multietapa mal balanceado genera excesiva deflexión del eje.", check: ["Verificar cojinetes de soporte intermedios"] },
+            { id: 23, block: "B2", code: "VAR-23", name: "Orientación del eje", unit: "Posición", top8: false, norm: "Estructural", accept: "Horizontal / Vertical", desc: "Disposición física del eje de rotación.", risk: "Problemas de espacio e inclinación inadecuada de lubricación.", check: ["Elegir vertical para pozos o ahorro de área útil"] },
+            { id: 24, block: "B2", code: "VAR-24", name: "Tipo de acoplamiento", unit: "Tipo", top8: false, norm: "AGMA", accept: "Eje libre / Monobloc", desc: "Unión entre eje del motor y bomba (Flexible, espaciador, magnético).", risk: "Acoplamiento rígido transmite todas las vibraciones al motor.", check: ["Usar acoplamiento con espaciador para mantenimiento rápido"] },
+            { id: 25, block: "B2", code: "VAR-25", name: "Material de la carcasa", unit: "Metalurgia", top8: true, norm: "ASTM / EN", accept: "Certificación MTR", desc: "Aleación metálica o polímero del cuerpo de la bomba.", risk: "Corrosión química penetrante o rotura por choque térmico.", check: ["Revisar compatibilidad química ASTM A216 / A351 / Duplex"] },
+            { id: 26, block: "B2", code: "VAR-26", name: "Material del impulsor", unit: "Metalurgia", top8: false, norm: "ASTM", accept: "Resistente cavitación", desc: "Composición del impulsor sometido a erosión e impacto.", risk: "Desgaste abrasivo acelerado y pérdida de espesor en álabes.", check: ["Exigir bronce o acero inoxidable AISI 316 como mínimo"] },
+            { id: 27, block: "B2", code: "VAR-27", name: "Material del eje", unit: "Metalurgia", top8: false, norm: "ASTM A276", accept: "Alta tenacidad", desc: "Acero de alta resistencia para transmitir el torque.", risk: "Fatiga mecánica y fractura transversal del eje.", check: ["Verificar acero inox 410, 316 o Duplex para fluidos agresivos"] },
+            { id: 28, block: "B2", code: "VAR-28", name: "Diámetro nominal del impulsor", unit: "mm", top8: false, norm: "Dimensional", accept: "Según corte", desc: "Diámetro físico actual instalado dentro de la voluta.", risk: "Corte excesivo destruye la eficiencia de los álabes.", check: ["Comprobar que el diámetro no esté recortado a más del 20%"] },
+            { id: 29, block: "B2", code: "VAR-29", name: "Diámetro máximo y mínimo del impulsor", unit: "mm", top8: false, norm: "Carcasa", accept: "Rango seguro", desc: "Límites geométricos de recortado dentro de la misma carcasa.", risk: "Recortar por debajo del mínimo causa gran turbulencia interna.", check: ["Verificar curva de recortado del catálogo oficial"] },
+            { id: 30, block: "B2", code: "VAR-30", name: "Tipo de sellado del eje", unit: "Tipo", top8: true, norm: "API 682", accept: "Sello Cartucho", desc: "Sistema para prevenir fugas (Sello mecánico simple/doble, empaquetadura).", risk: "Fuga peligrosa de fluidos tóxicos o inflamables.", check: ["Exigir sello mecánico tipo Cartucho balanceado"] },
+            { id: 31, block: "B2", code: "VAR-31", name: "Material de caras del sello mecánico", unit: "Material", top8: false, norm: "API 682", accept: "SiC vs SiC", desc: "Superficies de rozamiento primario (Carburo de silicio, carbono).", risk: "Rayado de caras y fuga masiva inmediata.", check: ["Usar SiC/SiC para fluidos abrasivos; Carbón/SiC para agua limpia"] },
+            { id: 32, block: "B2", code: "VAR-32", name: "Elastómeros del sello", unit: "Polímero", top8: false, norm: "Compatibilidad", accept: "Viton / EPDM", desc: "O-rings de sellado secundario (NBR, Viton, EPDM, Kalrez).", risk: "Hinchamiento o degradación química de los O-rings.", check: ["Confirmar Viton para hidrocarburos, EPDM para agua caliente"] },
+            { id: 33, block: "B2", code: "VAR-33", name: "Tipo de rodamientos", unit: "Rodamiento", top8: false, norm: "ISO 281", accept: "Vida L10h > 25,000h", desc: "Cojinetes de soporte radial y axial (Bolas, rodillos cónicos).", risk: "Sobrecalentamiento y trabamiento mecánico del rotor.", check: ["Verificar contacto angular en el lado de empuje axial"] },
+            { id: 34, block: "B2", code: "VAR-34", name: "Sistema de lubricación", unit: "Tipo", top8: false, norm: "API 610", accept: "Baño de aceite / Grasa", desc: "Método de lubricación de rodamientos (Grasa, baño de aceite, niebla).", risk: "Falta de lubricación destruye los rodamientos en horas.", check: ["Verificar visor de nivel de aceite tipo Bullseye"] },
+            { id: 35, block: "B2", code: "VAR-35", name: "Diámetro de succión", unit: "DN / pulg", top8: false, norm: "ANSI / DIN", accept: "DN 50 a DN 300", desc: "Tamaño nominal de la brida de entrada a la bomba.", risk: "Reducir la succión genera alta fricción y cavitación.", check: ["Tubería de succión debe ser igual o mayor que la brida"] },
+            { id: 36, block: "B2", code: "VAR-36", name: "Diámetro de descarga", unit: "DN / pulg", top8: false, norm: "ANSI / DIN", accept: "DN 32 a DN 250", desc: "Tamaño nominal de la brida de salida de la bomba.", risk: "Alta velocidad de salida genera excesiva pérdida de carga.", check: ["Verificar velocidad del fluido en descarga < 3.5 m/s"] },
+            { id: 37, block: "B2", code: "VAR-37", name: "Tipo de conexiones / bridas", unit: "Norma", top8: false, norm: "ASME B16.5", accept: "ANSI 150 / 300#", desc: "Norma y cara de las bridas (ANSI RF, FF, DIN PN16).", risk: "Incompatibilidad de apernado con las tuberías de planta.", check: ["Confirmar rating de presión de bridas (ANSI 150# vs 300#)"] },
+            { id: 38, block: "B2", code: "VAR-38", name: "Norma constructiva de diseño", unit: "Norma", top8: true, norm: "API/ISO/ANSI", accept: "ISO 5199 / API 610", desc: "Estándar industrial bajo el cual se fabricó el equipo.", risk: "Falta de intercambiabilidad y baja rigidez estructural.", check: ["Exigir API 610 en petroquímica; ASME B73.1 en química"] },
+            { id: 39, block: "B2", code: "VAR-39", name: "Sobreespesor de corrosión", unit: "mm", top8: false, norm: "API 610", accept: "3.0 mm mínimo", desc: "Espesor de pared metálico adicional asignado a desgaste.", risk: "Perforación de la carcasa antes de cumplir vida útil.", check: ["Verificar 3 mm mínimo en carcasas de acero fundido"] },
+            { id: 40, block: "B2", code: "VAR-40", name: "Peso total del conjunto", unit: "kg", top8: false, norm: "Logística", accept: "Valor nominal", desc: "Peso operativo combinado (Bomba + Base + Motor + Fluido).", risk: "Falla de soporte en cimentación estructurada.", check: ["Asegurar que la base de concreto sea 1.5x el peso total"] },
+            { id: 41, block: "B2", code: "VAR-41", name: "Nivel de vibración admisible", unit: "mm/s RMS", top8: false, norm: "ISO 10816", accept: "< 2.3 mm/s (Clase I)", desc: "Límite de amplitud de vibración global en operación.", risk: "Vibración alta destruye sellos mecánicos y rodamientos.", check: ["Medir vibraciones en taller durante prueba de recepción"] },
+            { id: 42, block: "B2", code: "VAR-42", name: "Dirección de rotación", unit: "Sentido", top8: false, norm: "Fabricante", accept: "CW / CCW desde motor", desc: "Sentido de giro del eje mirado desde el extremo motriz.", risk: "Girar al revés desenrosca el impulsor y destruye la bomba.", check: ["Verificar flecha de rotación troquelada en la carcasa"] },
+            { id: 43, block: "B2", code: "VAR-43", name: "Diseño de la carcasa", unit: "Tipo", top8: false, norm: "Diseño", accept: "Voluta simple/doble", desc: "Geometría interna (Doble voluta equilibra la fuerza radial).", risk: "Carcasa de voluta simple genera gran carga radial a bajo caudal.", check: ["Exigir doble voluta en bombas con descarga > 2 pulgadas"] },
+            { id: 44, block: "B2", code: "VAR-44", name: "Plan de sellado API", unit: "Código API", top8: false, norm: "API 682", accept: "Plan 11 / 21 / 53A", desc: "Esquema de tuberías auxiliares de lavado y refrigeración de sello.", risk: "Sobrecalentamiento del sello por falta de circulación.", check: ["Verificar orificio de restricción y manómetro en línea"] },
+            { id: 45, block: "B2", code: "VAR-45", name: "Presión máxima de trabajo (MAWP)", unit: "bar", top8: false, norm: "ASME BPVC", accept: "> 1.25 x Shut-off", desc: "Máxima presión estructural permitida a la temperatura de diseño.", risk: "Fisura o explosión de la carcasa ante golpe de ariete.", check: ["Verificar prueba hidrostática a 1.5 x MAWP"] },
+
+            // BLOCK 3: Electrical & Control Variables (46 to 65)
+            { id: 46, block: "B3", code: "VAR-46", name: "Potencia nominal del motor", unit: "HP / kW", top8: true, norm: "NEMA / IEC", accept: "15 Rangos std", desc: "Capacidad de salida mecánica nominal del motor eléctrico.", risk: "Motor pequeño se quema por sobrecarga continua.", check: ["Verificar que cubra la curva completa sin sobrepasar SF"] },
+            { id: 47, block: "B3", code: "VAR-47", name: "Tensión de alimentación", unit: "V", top8: false, norm: "IEEE", accept: "220/380/440/460V", desc: "Voltaje de la red eléctrica de la planta industrial.", risk: "Voltaje incorrecto quema el aislamiento de los devanados.", check: ["Confirmar placa de conexiones estrella / triángulo"] },
+            { id: 48, block: "B3", code: "VAR-48", name: "Frecuencia eléctrica", unit: "Hz", top8: false, norm: "Red local", accept: "50 Hz / 60 Hz", desc: "Frecuencia de oscilación de la corriente alterna.", risk: "Operar un motor de 60 Hz en 50 Hz reduce un 17% las RPM.", check: ["Verificar frecuencia exacta de la red del sitio"] },
+            { id: 49, block: "B3", code: "VAR-49", name: "Número de fases", unit: "Fases", top8: false, norm: "Eléctrica", accept: "Trifásico", desc: "Suministro de energía (Monofásico vs Trifásico).", risk: "Desbalance de fases provoca sobrecalentamiento destructivo.", check: ["Motores > 3 HP deben ser trifásicos"] },
+            { id: 50, block: "B3", code: "VAR-50", name: "Velocidad nominal de giro", unit: "RPM", top8: false, norm: "NEMA / IEC", accept: "3600/1800/1200 RPM", desc: "Revoluciones por minuto del motor síncrono/asíncrono.", risk: "Alta velocidad (3600 RPM) desgasta sellos y aumenta NPSHr.", check: ["Preferir 1800 RPM para fluidos abrasivos o trabajo pesado"] },
+            { id: 51, block: "B3", code: "VAR-51", name: "Corriente a plena carga (FLA)", unit: "A", top8: false, norm: "NEMA MG-1", accept: "Según catálogo", desc: "Amperaje consumido operando a potencia nominal y voltaje nominal.", risk: "FLA elevado requiere cables de mayor calibre e interruptores.", check: ["Ajustar relé térmico de protección exactamente a la FLA"] },
+            { id: 52, block: "B3", code: "VAR-52", name: "Corriente de arranque (LRA)", unit: "A", top8: false, norm: "NEMA MG-1", accept: "6x a 8x FLA", desc: "Pico de amperaje consumido en el segundo inicial de encendido.", risk: "Caída de voltaje severa en la red eléctrica durante el arranque.", check: ["Evaluar arrancador suave si LRA supera capacidad de red"] },
+            { id: 53, block: "B3", code: "VAR-53", name: "Factor de servicio (SF)", unit: "Coeficiente", top8: false, norm: "NEMA", accept: "1.15 a 1.25", desc: "Margen de sobrecarga continua permitida sin quemar el motor.", risk: "Operar continuamente dentro del SF reduce la vida útil.", check: ["Usar el SF solo como margen de seguridad ocasional"] },
+            { id: 54, block: "B3", code: "VAR-54", name: "Eficiencia del motor", unit: "Clase", top8: false, norm: "IEC 60034-30", accept: "IE3 / IE4", desc: "Clasificación energética del motor (IE2, IE3 Premium, IE4).", risk: "Motores IE1/IE2 malgastan miles de dólares en energía al año.", check: ["Exigir mínimo eficiencia IE3 Premium"] },
+            { id: 55, block: "B3", code: "VAR-55", name: "Factor de potencia (cos φ)", unit: "0.0 - 1.0", top8: false, norm: "IEEE", accept: "> 0.85 a plena carga", desc: "Eficiencia en el uso de la potencia activa respecto a reactiva.", risk: "Bajo factor de potencia genera penalizaciones en la factura.", check: ["Instalar banco de capacitores si cos φ < 0.85"] },
+            { id: 56, block: "B3", code: "VAR-56", name: "Grado de protección IP", unit: "Código IP", top8: true, norm: "IEC 60529", accept: "IP55 / IP65 / IP66", desc: "Estanqueidad del motor contra polvo y agua.", risk: "Ingreso de agua arruina el aislamiento de los devanados.", check: ["Exigir mínimo IP55 a la intemperie; IP66 en lavado intensivo"] },
+            { id: 57, block: "B3", code: "VAR-57", name: "Clase de aislamiento térmico", unit: "Clase", top8: false, norm: "IEC 60034", accept: "Clase F (bajada B)", desc: "Resistencia a la temperatura interna del devanado.", risk: "Quemadura de devanados por exceso de temperatura.", check: ["Aislamiento Clase F con límite de temperatura de Clase B"] },
+            { id: 58, block: "B3", code: "VAR-58", name: "Régimen de trabajo", unit: "Código S", top8: false, norm: "IEC", accept: "S1 (Continuo)", desc: "Tipo de servicio operacional (S1 Continuo, S3 Intermitente).", risk: "Usar motor S3 en servicio continuo provoca falla térmica.", check: ["Exigir Servicio Continuo S1 para procesos industriales"] },
+            { id: 59, block: "B3", code: "VAR-59", name: "Compatibilidad con variador (VFD)", unit: "Inverter Duty", top8: false, norm: "NEMA MG1 P31", accept: "Aislamiento reforzado", desc: "Aislamiento de devanados capaz de soportar picos de voltaje PWM.", risk: "Picos de voltaje por VFD perforan el aislamiento estándar.", check: ["Exigir cableado e hilos esmaltados clase Inverter Duty"] },
+            { id: 60, block: "B3", code: "VAR-60", name: "Clasificación de área peligrosa", unit: "Certificado", top8: false, norm: "ATEX / IECEx", accept: "Ex d / Class 1 Div 1", desc: "Protección antiexplosión para atmósferas con gases o polvos.", risk: "Riesgo de explosión o incendio en presencia de gases.", check: ["Verificar marcaje ATEX / IECEx exacto de la zona de planta"] },
+            { id: 61, block: "B3", code: "VAR-61", name: "Sensores de protección térmica", unit: "Sensor", top8: false, norm: "IEC", accept: "PT100 / Thermistor", desc: "Sondas embebidas en los devanados para disparo por calor.", risk: "Falla silenciosa del motor por sobretemperatura prolongada.", check: ["Conectar los PT100 al relé de protección del tablero"] },
+            { id: 62, block: "B3", code: "VAR-62", name: "Sensor de temperatura de rodamientos", unit: "Sensor", top8: false, norm: "API 670", accept: "PT100 de contacto", desc: "Monitoreo en tiempo real de la temperatura de cojinetes.", risk: "Destrucción de rodamientos sin previo aviso.", check: ["Ajustar alarma a 80 °C y disparo a 90 °C"] },
+            { id: 63, block: "B3", code: "VAR-63", name: "Tamaño de bastidor / Frame", unit: "Código Frame", top8: false, norm: "NEMA / IEC", accept: "Normalizado", desc: "Dimensiones del cuerpo físico del motor (ej. IEC 132M, NEMA 256T).", risk: "Imposibilidad de acoplar un motor de reemplazo.", check: ["Verificar cota H y distancia entre agujeros de patas"] },
+            { id: 64, block: "B3", code: "VAR-64", name: "Tipo de arranque recomendado", unit: "Método", top8: false, norm: "IEEE", accept: "Soft-Starter / VFD", desc: "Método de puesta en marcha (Directo, Estrella-Triángulo, Suave).", risk: "Arranque directo en motores grandes causa golpe de ariete.", check: ["Usar Arrancador Suave o VFD para motores > 15 HP"] },
+            { id: 65, block: "B3", code: "VAR-65", name: "Tolerancia de variación de voltaje", unit: "%", top8: false, norm: "NEMA", accept: "± 10%", desc: "Margen de oscilación de tensión sin perder potencia nominal.", risk: "Caída de voltaje > 10% dispara la corriente y calienta el motor.", check: ["Monitorear calidad de energía con analizador de redes"] },
+
+            // BLOCK 4: Assembly, Tolerances, NDT & Maintenance (66 to 85)
+            { id: 66, block: "B4", code: "VAR-66", name: "Juego axial del eje (End play)", unit: "mm", top8: false, norm: "API 610", accept: "< 0.05 mm", desc: "Desplazamiento longitudinal permitido en el eje.", risk: "Excesivo juego destruye las caras del sello mecánico.", check: ["Medir con reloj comparador empujando axialmente"] },
+            { id: 67, block: "B4", code: "VAR-67", name: "Desviación radial del eje (Runout)", unit: "mm", top8: false, norm: "API 610", accept: "< 0.025 mm", desc: "Excentricidad o excentricidad radial de la punta del eje.", risk: "Vibración severa e incapacidad de mantener estanqueidad.", check: ["Verificar runout en el asiento del sello mecánico"] },
+            { id: 68, block: "B4", code: "VAR-68", name: "Tolerancia de desalineación", unit: "mm / mm", top8: false, norm: "ISO 10816", accept: "< 0.05 mm paralelo", desc: "Límite de desalineación angular y paralela con el motor.", risk: "Desalineación es la causa #1 de falla de rodamientos.", check: ["Realizar alineación láser de ejes antes de la puesta en marcha"] },
+            { id: 69, block: "B4", code: "VAR-69", name: "Par de apriete (Torque) de pernos", unit: "N·m", top8: false, norm: "Estructural", accept: "Según tabla perno", desc: "Torque exacto de apriete para los tornillos de carcasa y bridas.", risk: "Apriete desigual causa de formación de carcasa y fugas.", check: ["Usar llave dinamométrica calibrada en patrón cruzado"] },
+            { id: 70, block: "B4", code: "VAR-70", name: "Holgura de anillos de desgaste", unit: "mm", top8: false, norm: "API 610", accept: "0.25 - 0.40 mm", desc: "Sepa entre el impulsor y el anillo de desgaste de la voluta.", risk: "Holgura excesiva permite recirculación interna y pierde TDH.", check: ["Reemplazar anillos cuando la holgura se duplique"] },
+            { id: 71, block: "B4", code: "VAR-71", name: "Código exacto de rodamientos", unit: "Código SKF", top8: false, norm: "ISO", accept: "SKF / FAG", desc: "Nomenclatura precisa de reemplazo (ej. 6308 C3 / 7308 BECBM).", risk: "Comprar un rodamiento sin juego C3 provoca trabamiento térmico.", check: ["Registrar los códigos exactos en la ficha de repuestos"] },
+            { id: 72, block: "B4", code: "VAR-72", name: "Frecuencia y volumen de reengrase", unit: "Horas / g", top8: false, norm: "Fabricante", accept: "2,000h / 15g", desc: "Intervalos de relubricación y cantidad de grasa requerida.", risk: "Exceso de grasa revienta los sellos; falta de grasa quema cojinetes.", check: ["Usar pistola de engrase con medidor de gramos"] },
+            { id: 73, block: "B4", code: "VAR-73", name: "Especificación técnica del lubricante", unit: "ISO VG / NLGI", top8: false, norm: "ISO 3448", accept: "ISO VG 46 / NLGI 2", desc: "Viscosidad del aceite o base del jabón de la grasa.", risk: "Mezclar grasas incompatibles saponifica y destruye la lubricación.", check: ["Usar siempre lubricante con aditivos EP (Extrema Presión)"] },
+            { id: 74, block: "B4", code: "VAR-74", name: "Temperatura límite de rodamientos", unit: "°C", top8: false, norm: "API 610", accept: "< 80 °C en caja", desc: "Umbral de temperatura máxima segura en la caja de rodamientos.", risk: "Oxidación acelerada del lubricante y falla inminente.", check: ["Disparar alarma si la caja supera los 85 °C"] },
+            { id: 75, block: "B4", code: "VAR-75", name: "Cargas y empujes axiales/radiales", unit: "kN", top8: false, norm: "Diseño", accept: "< Capacidad L10h", desc: "Fuerzas mecánicas resultantes transmitidas a los cojinetes.", risk: "Empuje axial excesivo destruye el rodamiento de contacto angular.", check: ["Verificar orificios de balanceo en la parte posterior del impulsor"] },
+            { id: 76, block: "B4", code: "VAR-76", name: "Momento de inercia (GD² / WK²)", unit: "kg·m²", top8: false, norm: "Dinámica", accept: "Valor nominal", desc: "Inercia rotacional del conjunto para análisis de transitorios.", risk: "Inercia alta alarga el tiempo de arranque y sobrecalienta el motor.", check: ["Requerir el valor para estudios de Golpe de Ariete"] },
+            { id: 77, block: "B4", code: "VAR-77", name: "Velocidad crítica del eje", unit: "RPM", top8: false, norm: "API 610", accept: "> 1.2 x RPM nom", desc: "Frecuencia de resonancia mecánica propia del conjunto rotativo.", risk: "Operar cerca de la velocidad crítica causa destrucción por resonancia.", check: ["Asegurar que la 1ra velocidad crítica esté 20% arriba de la nominal"] },
+            { id: 78, block: "B4", code: "VAR-78", name: "Límites de cargas en boquillas", unit: "N / N·m", top8: false, norm: "API 610 Tab. 5", accept: "Cumple norma", desc: "Fuerzas y momentos máximos transmisibles por la tubería.", risk: "Desalineación de tuberías tuerce la carcasa y roza el impulsor.", check: ["Tuberías deben soportarse independientemente de la bomba"] },
+            { id: 79, block: "B4", code: "VAR-79", name: "Puntos de medición de vibración", unit: "Ubicación", top8: false, norm: "ISO 10816", accept: "H-V-A marcados", desc: "Coordenadas planas para asentamiento de acelerómetros de monitoreo.", risk: "Mediciones erráticas por colocar el sensor en tapas delgadas.", check: ["Asegurar pads planos troquelados en la caja de rodamientos"] },
+            { id: 80, block: "B4", code: "VAR-80", name: "Conexiones del plan de sellado", unit: "NPT", top8: false, norm: "API 682", accept: "1/2\" NPT mínimo", desc: "Diámetros de las roscas de enjuague, venteo y drenaje de sello.", risk: "Fugas en roscas mal selladas o taponamiento por sedimento.", check: ["Usar sellador anaeróbico de roscas en conexiones NPT"] },
+            { id: 81, block: "B4", code: "VAR-81", name: "Temperatura de lavado de sello", unit: "°C", top8: false, norm: "API 682", accept: "< 60 °C en cara", desc: "Temperatura del fluido inyectado a la cámara del sello.", risk: "Vaporización entre las caras del sello y marcha en seco.", check: ["Instalar intercambiador de calor si se usa Plan 21 o 23"] },
+            { id: 82, block: "B4", code: "VAR-82", name: "Presión de prueba hidrostática", unit: "bar", top8: false, norm: "HI / API 610", accept: "1.5 x MAWP", desc: "Presión de ensayo estático en taller para validar la fundición.", risk: "Fisuras o microporosidad no detectadas en la voluta.", check: ["Exigir certificado de prueba hidrostática firmado de fábrica"] },
+            { id: 83, block: "B4", code: "VAR-83", name: "Grado de balanceo dinámico", unit: "Grado ISO", top8: false, norm: "ISO 1940", accept: "G2.5 / G1.0", desc: "Equilibrado de masas del impulsor rotativo.", risk: "Desbalance dinámico provoca vibración desmedida a alta RPM.", check: ["Exigir reporte de balanceo dinámico Grado G2.5"] },
+            { id: 84, block: "B4", code: "VAR-84", name: "Ensayos No Destructivos (NDT)", unit: "Ensayos", top8: false, norm: "ASME V", accept: "PT / MT / RT", desc: "Pruebas de calidad en fundición (Tintes penetrantes, radiografía).", risk: "Inclusiones de escoria o grietas internas en álabes.", check: ["Solicitar ensayo PT en álabes de acero inoxidable"] },
+            { id: 85, block: "B4", code: "VAR-85", name: "Protocolo de Troubleshooting", unit: "Matriz", top8: false, norm: "Mantenimiento", accept: "Matriz FMEA", desc: "Matriz de diagnóstico rápido de fallas (Causa-Efecto).", risk: "Demoras prolongadas en restaurar el servicio tras una parada.", check: ["Verificar que el manual incluya la tabla de fallas y soluciones"] }
+        ];
+
+        // Brand Profile Specifications
+        const brandProfiles = {
+            "Grundfos": { norm: "ISO 5199", mat: "AISI 316 Stainless", effFactor: 1.05, seal: "SiC/SiC Cartridge", ip: "IP55 / IE4", suct: "DN 65 / DN 50" },
+            "KSB": { norm: "ISO 5199 / API 610", mat: "Ductile Iron / Duplex", effFactor: 1.04, seal: "SiC/Carbon/Viton", ip: "IP55 / IE3", suct: "DN 80 / DN 65" },
+            "Flowserve": { norm: "API 610 (OH2)", mat: "Cast Steel / Hastelloy", effFactor: 1.02, seal: "API Plan 11/53A Double", ip: "IP66 / Class 1 Div 2", suct: "DN 80 / DN 50" },
+            "Sulzer": { norm: "ISO 5199 Heavy", mat: "Duplex / Super Duplex", effFactor: 1.03, seal: "Heavy Duty Cartridge", ip: "IP55 / IE3", suct: "DN 100 / DN 80" },
+            "Xylem": { norm: "ASME B73.1 (ANSI)", mat: "Cast Iron / AISI 316", effFactor: 1.01, seal: "SiC/SiC/Viton", ip: "IP55 / NEMA Prem.", suct: "DN 65 / DN 50" },
+            "Ebara": { norm: "JIS / ISO 5199", mat: "Stamped 316L Stainless", effFactor: 1.00, seal: "Ceramic/Carbon/NBR", ip: "IP55 / IE3", suct: "DN 50 / DN 40" },
+            "Wilo": { norm: "EN 733 / DIN 24255", mat: "Cast Iron / Bronze", effFactor: 1.02, seal: "AQ1EGG / SiC", ip: "IP54 / IE4", suct: "DN 65 / DN 50" },
+            "ITT Goulds Pumps": { norm: "ASME B73.1 (ANSI)", mat: "Ductile Iron / CD4MCu", effFactor: 1.03, seal: "Cartridge i-FRAME", ip: "IP66 / NEMA Prem.", suct: "3\" / 2\" ANSI 150#" },
+            "Warman": { norm: "Heavy Slurry Design", mat: "High Chrome 27% / Rubber", effFactor: 0.92, seal: "Expeller / Packed", ip: "IP65 Heavy Duty", suct: "DN 100 / DN 80" },
+            "Pentair": { norm: "Commercial / NFPA 20", mat: "Cast Iron / Bronze", effFactor: 0.98, seal: "Standard Mechanical", ip: "IP54 Standard", suct: "DN 50 / DN 40" },
+            "Franklin Electric": { norm: "NEMA Submersible", mat: "304 Stainless Steel", effFactor: 0.99, seal: "Hermetic Mechanical", ip: "IP68 Submersible", suct: "2\" NPT / DN 50" },
+            "Andritz": { norm: "Custom Heavy Duty", mat: "Super Duplex Stainless", effFactor: 1.04, seal: "Double Cartridge", ip: "IP65 High Voltage", suct: "DN 150 / DN 100" }
+        };
+
+        // Application State
+        let currentFilter = "ALL";
+        let selectedVarId = 1;
+        let chartInstance = null;
+
+        // On Page Load
+        window.onload = function() {
+            populateVariableSelect();
+            initChart();
+            updateSystem();
+        };
+
+        // Populate ComboBox #3 with 85 variables
+        function populateVariableSelect() {
+            const select = document.getElementById('variableSelect');
+            select.innerHTML = '';
+            
+            masterVariables.forEach(v => {
+                const opt = document.createElement('option');
+                opt.value = v.id;
+                opt.innerText = `${v.code} - ${v.name} ${v.top8 ? '★' : ''}`;
+                select.appendChild(opt);
+            });
+
+            select.value = selectedVarId;
+        }
+
+        // On Select ComboBox Change
+        function onVariableSelectChange() {
+            selectedVarId = parseInt(document.getElementById('variableSelect').value);
+            updateVariableInspector();
+            highlightMatrixRow();
+        }
+
+        // Quick Filter Tabs
+        function filterVariables(filterKey) {
+            currentFilter = filterKey;
+            
+            // Update Active Tab Styling
+            ['ALL', 'TOP8', 'B1', 'B2', 'B3', 'B4'].forEach(k => {
+                const btn = document.getElementById(`tab${k}`);
+                if (btn) {
+                    if (k === filterKey) btn.classList.add('active-tab');
+                    else btn.classList.remove('active-tab');
+                }
+            });
+
+            renderMatrixTable();
+        }
+
+        // Initialize Chart
+        function initChart() {
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        { label: 'Q-H Bomba (m)', data: [], borderColor: '#6366f1', borderWidth: 3, fill: false, tension: 0.3, yAxisID: 'y' },
+                        { label: 'Curva Sistema (m)', data: [], borderColor: '#ef4444', borderWidth: 2, borderDash: [4, 4], fill: false, tension: 0.2, yAxisID: 'y' },
+                        { label: 'Eficiencia (%)', data: [], borderColor: '#10b981', borderWidth: 2, fill: false, tension: 0.4, yAxisID: 'y1' },
+                        { label: 'Potencia BHP (HP)', data: [], borderColor: '#f59e0b', borderWidth: 2, fill: false, tension: 0.2, yAxisID: 'y2' },
+                        { label: 'NPSHr (m)', data: [], borderColor: '#38bdf8', borderWidth: 2, borderDash: [2, 2], fill: false, tension: 0.3, yAxisID: 'y' },
+                        { label: 'Punto de Operación', data: [], borderColor: '#ec4899', backgroundColor: '#ec4899', pointRadius: 7, showLine: false, yAxisID: 'y' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        x: { title: { display: true, text: 'Caudal Q (m³/h)', color: '#94a3b8' }, grid: { color: 'rgba(30, 41, 59, 0.5)' }, ticks: { color: '#94a3b8' } },
+                        y: { type: 'linear', position: 'left', title: { display: true, text: 'Altura TDH / NPSH (m)', color: '#6366f1' }, grid: { color: 'rgba(30, 41, 59, 0.5)' }, ticks: { color: '#6366f1' } },
+                        y1: { type: 'linear', position: 'right', title: { display: true, text: 'Eficiencia (%)', color: '#10b981' }, grid: { drawOnChartArea: false }, ticks: { color: '#10b981' }, min: 0, max: 100 },
+                        y2: { type: 'linear', display: false, min: 0 }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        // Global System Calculation Engine
+        function updateSystem() {
+            const brand = document.getElementById('brandSelect').value;
+            const hp = parseFloat(document.getElementById('hpSelect').value);
+            const profile = brandProfiles[brand] || brandProfiles["Grundfos"];
+
+            // Calculate Hydraulic Curves based on HP & Brand
+            const shutOff = 12 + (hp * 2.6);
+            const maxQ = Math.round((10 + (hp * 5.5)) * profile.effFactor);
+            const bepQ = Math.round(maxQ * 0.62);
+            const bepH = Math.round(shutOff * 0.76);
+            const bepEff = Math.min(88, Math.round((60 + Math.log2(hp + 1) * 5.2) * profile.effFactor));
+            const bepNpsh = +(1.0 + (hp * 0.04)).toFixed(1);
+            const mawp = +( (shutOff * 0.1) + 10 ).toFixed(1);
+
+            // Update Labels
+            document.getElementById('lblShutOff').innerText = `${Math.round(shutOff)} m`;
+            document.getElementById('lblBepQ').innerText = `${bepQ} m³/h`;
+            document.getElementById('lblBepNpsh').innerText = `${bepNpsh} m`;
+            document.getElementById('lblMawp').innerText = `${mawp} bar`;
+
+            // Build Curve Data Points
+            const labels = [];
+            const qhData = [];
+            const sysData = [];
+            const effData = [];
+            const powerData = [];
+            const npshData = [];
+
+            const steps = 10;
+            for (let i = 0; i <= steps; i++) {
+                const q = Math.round((maxQ / steps) * i);
+                labels.push(q);
+
+                // Pump Q-H
+                const h = Math.max(0, shutOff - (shutOff * 0.65 * Math.pow(q / maxQ, 2)));
+                qhData.push(+h.toFixed(1));
+
+                // System Head Curve H_sys = Static + K * Q^2
+                const staticH = shutOff * 0.35;
+                const sysH = staticH + ( (bepH - staticH) * Math.pow(q / (bepQ || 1), 2) );
+                sysData.push(+sysH.toFixed(1));
+
+                // Efficiency
+                const normQ = q / (bepQ || 1);
+                let eff = 0;
+                if (normQ <= 2.0) eff = Math.max(0, bepEff * (2 * normQ - Math.pow(normQ, 2)));
+                effData.push(+eff.toFixed(1));
+
+                // Power BHP
+                const pwr = (hp * 0.3) + ((hp * 0.7) * (q / maxQ));
+                powerData.push(+pwr.toFixed(1));
+
+                // NPSHr Curve
+                const npsh = 0.8 + (bepNpsh * Math.pow(q / (bepQ || 1), 1.5));
+                npshData.push(+npsh.toFixed(1));
+            }
+
+            // Update Chart
+            chartInstance.data.labels = labels;
+            chartInstance.data.datasets[0].data = qhData;
+            chartInstance.data.datasets[1].data = sysData;
+            chartInstance.data.datasets[2].data = effData;
+            chartInstance.data.datasets[3].data = powerData;
+            chartInstance.data.datasets[4].data = npshData;
+
+            // Configure Sliders
+            const simQRange = document.getElementById('simQRange');
+            const simHRange = document.getElementById('simHRange');
+            simQRange.max = Math.round(maxQ * 1.25);
+            simHRange.max = Math.round(shutOff * 1.3);
+
+            if (parseFloat(simQRange.value) > parseFloat(simQRange.max)) simQRange.value = bepQ;
+            if (parseFloat(simHRange.value) > parseFloat(simHRange.max)) simHRange.value = bepH;
+
+            chartInstance.update();
+
+            runSimulation();
+            updateVariableInspector();
+            renderMatrixTable();
+            updateDatasheetView();
+        }
+
+        // Live Operating Point Simulator
+        function runSimulation() {
+            const simQ = parseFloat(document.getElementById('simQRange').value);
+            const simH = parseFloat(document.getElementById('simHRange').value);
+            const simVisc = parseFloat(document.getElementById('simViscRange').value);
+            const simTemp = parseFloat(document.getElementById('simTempRange').value);
+
+            document.getElementById('simQVal').innerText = `${simQ} m³/h`;
+            document.getElementById('simHVal').innerText = `${simH} m`;
+            document.getElementById('simViscVal').innerText = `${simVisc} cSt`;
+            document.getElementById('simTempVal').innerText = `${simTemp} °C`;
+
+            const brand = document.getElementById('brandSelect').value;
+            const hp = parseFloat(document.getElementById('hpSelect').value);
+            const profile = brandProfiles[brand] || brandProfiles["Grundfos"];
+
+            const shutOff = 12 + (hp * 2.6);
+            const maxQ = Math.round((10 + (hp * 5.5)) * profile.effFactor);
+            const bepQ = Math.round(maxQ * 0.62);
+            const bepEff = Math.min(88, Math.round((60 + Math.log2(hp + 1) * 5.2) * profile.effFactor));
+
+            // Viscosity correction factor (Hydraulic Institute approximation)
+            const viscPenalty = simVisc > 10 ? Math.max(0.4, 1 - (Math.log10(simVisc) * 0.18)) : 1.0;
+
+            // Efficiency at simQ
+            const normQ = simQ / (bepQ || 1);
+            let eff = 0;
+            if (normQ <= 2.0) eff = Math.max(0, bepEff * (2 * normQ - Math.pow(normQ, 2)));
+            eff = +(eff * viscPenalty).toFixed(1);
+
+            // Consumed Power
+            let realBhp = (simQ * simH) / (270 * Math.max(0.15, eff / 100));
+            realBhp = +Math.min(hp * 1.6, realBhp).toFixed(1);
+
+            // NPSHr
+            const npshr = +(0.8 + (1.2 * Math.pow(simQ / (bepQ || 1), 1.5))).toFixed(1);
+            // Temperature impact on NPSHa (higher temp = higher vapor pressure)
+            const vaporHead = +(0.2 + Math.pow(simTemp / 100, 2) * 3).toFixed(1);
+            const npsha = +(10.0 - vaporHead).toFixed(1);
+            const npshMargin = +(npsha - npshr).toFixed(1);
+
+            document.getElementById('simEff').innerText = `${eff}%`;
+            document.getElementById('simPower').innerText = `${realBhp} HP`;
+            document.getElementById('simNpshMargin').innerText = `${npshMargin > 0 ? '+' : ''}${npshMargin}m`;
+
+            // Plot Operating Point
+            chartInstance.data.datasets[5].data = [{ x: simQ, y: simH }];
+            chartInstance.update('none');
+
+            // Diagnostic Logic
+            const dot = document.getElementById('globalStatusDot');
+            const statusText = document.getElementById('globalStatusText');
+            const diagBox = document.getElementById('simDiagBox');
+            const diagTitle = document.getElementById('simDiagTitle');
+            const diagDesc = document.getElementById('simDiagDesc');
+
+            if (npshMargin < 0.5) {
+                // Cavitation Hazard
+                dot.className = "w-2.5 h-2.5 rounded-full bg-rose-500 animate-bounce";
+                statusText.innerText = "PELIGRO: Cavitación Detectada";
+                diagBox.className = "p-3.5 rounded-xl border bg-rose-950/60 border-rose-800 text-xs space-y-1.5 transition";
+                diagTitle.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-rose-400"></i> Alerta Crítica: Cavitación Inminente`;
+                diagDesc.innerText = `El NPSH disponible (${npsha}m) es insuficiente para el NPSH requerido (${npshr}m) a ${simTemp}°C. Se producirá vaporización destructiva en el impulsor.`;
+            } else if (simH > shutOff) {
+                // Overpressure / Shut-off
+                dot.className = "w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse";
+                statusText.innerText = "Operación en Shut-Off";
+                diagBox.className = "p-3.5 rounded-xl border bg-amber-950/60 border-amber-800 text-xs space-y-1.5 transition";
+                diagTitle.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-400"></i> Advertencia: Válvula Cerrada o TDH Excesivo`;
+                diagDesc.innerText = `La altura requerida (${simH}m) excede el Shut-off (${Math.round(shutOff)}m). Caudal nulo provocando recirculación y calentamiento.`;
+            } else if (realBhp > hp) {
+                // Motor Overload
+                dot.className = "w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse";
+                statusText.innerText = "Sobrecarga de Motor";
+                diagBox.className = "p-3.5 rounded-xl border bg-amber-950/60 border-amber-800 text-xs space-y-1.5 transition";
+                diagTitle.innerHTML = `<i class="fa-solid fa-bolt text-amber-400"></i> Sobrecarga Eléctrica: ${realBhp} HP > ${hp} HP`;
+                diagDesc.innerText = `El consumo mecánico excede la potencia nominal del motor. Riesgo de disparo por sobrecalentamiento del relé térmico.`;
+            } else {
+                // Normal
+                dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse";
+                statusText.innerText = "Operación Óptima BEP";
+                diagBox.className = "p-3.5 rounded-xl border bg-emerald-950/60 border-emerald-800 text-xs space-y-1.5 transition";
+                diagTitle.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> Punto de Trabajo Seguro`;
+                diagDesc.innerText = `Operación estable a ${simQ} m³/h @ ${simH} m. Eficiencia del ${eff}%, consumo dentro de norma (${realBhp} HP) y margen seguro de NPSH (+${npshMargin}m).`;
+            }
+        }
+
+        // Update Inspector Box
+        function updateVariableInspector() {
+            const v = masterVariables.find(x => x.id === selectedVarId) || masterVariables[0];
+
+            document.getElementById('inspBlockBadge').innerText = getBlockName(v.block);
+            document.getElementById('inspVarNum').innerText = `VAR #${v.id} / 85`;
+            document.getElementById('inspName').innerText = `${v.id}. ${v.name}`;
+            document.getElementById('inspDesc').innerText = v.desc;
+            document.getElementById('inspUnits').innerText = v.unit;
+            document.getElementById('inspNorm').innerText = v.norm;
+            document.getElementById('inspAcceptance').innerText = v.accept;
+            document.getElementById('inspRisk').innerText = v.risk;
+            document.getElementById('inspImportance').innerText = v.top8 ? '★ CRÍTICO (COMPRADOR)' : 'ESTÁNDAR TÉCNICO';
+
+            const checklistEl = document.getElementById('inspChecklist');
+            checklistEl.innerHTML = '';
+            v.check.forEach(c => {
+                const li = document.createElement('li');
+                li.innerText = c;
+                checklistEl.appendChild(li);
+            });
+        }
+
+        // Render Matrix Table
+        function renderMatrixTable() {
+            const tbody = document.getElementById('matrixTableBody');
+            const search = document.getElementById('matrixSearch').value.toLowerCase();
+            tbody.innerHTML = '';
+
+            let filtered = masterVariables.filter(v => {
+                if (currentFilter === 'TOP8') return v.top8;
+                if (currentFilter === 'B1') return v.block === 'B1';
+                if (currentFilter === 'B2') return v.block === 'B2';
+                if (currentFilter === 'B3') return v.block === 'B3';
+                if (currentFilter === 'B4') return v.block === 'B4';
+                return true;
+            });
+
+            if (search) {
+                filtered = filtered.filter(v => v.name.toLowerCase().includes(search) || v.code.toLowerCase().includes(search));
+            }
+
+            document.getElementById('matrixCount').innerText = `${filtered.length} Items`;
+
+            filtered.forEach(v => {
+                const tr = document.createElement('tr');
+                tr.id = `row-var-${v.id}`;
+                tr.className = `hover:bg-slate-800/60 transition cursor-pointer ${v.id === selectedVarId ? 'bg-indigo-950/50 border-l-4 border-indigo-500' : ''}`;
+                tr.onclick = () => {
+                    selectedVarId = v.id;
+                    document.getElementById('variableSelect').value = v.id;
+                    updateVariableInspector();
+                    highlightMatrixRow();
+                };
+
+                tr.innerHTML = `
+                    <td class="p-3 text-center text-slate-500 font-mono text-[11px]">${v.id}</td>
+                    <td class="p-3 font-mono text-indigo-400 font-bold">${v.code}</td>
+                    <td class="p-3 text-slate-200 font-semibold">${v.name}</td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-900 border border-slate-700 text-slate-300">${getBlockName(v.block)}</span></td>
+                    <td class="p-3 font-mono text-amber-400">${v.accept}</td>
+                    <td class="p-3 text-slate-400">${v.unit}</td>
+                    <td class="p-3 text-center">${v.top8 ? '<span class="text-amber-400 font-bold text-sm">★ SI</span>' : '<span class="text-slate-600">-</span>'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Highlight selected matrix row
+        function highlightMatrixRow() {
+            masterVariables.forEach(v => {
+                const row = document.getElementById(`row-var-${v.id}`);
+                if (row) {
+                    if (v.id === selectedVarId) {
+                        row.className = 'hover:bg-slate-800/60 transition cursor-pointer bg-indigo-950/50 border-l-4 border-indigo-500';
+                    } else {
+                        row.className = 'hover:bg-slate-800/60 transition cursor-pointer';
+                    }
+                }
+            });
+        }
+
+        // Block Name Helper
+        function getBlockName(block) {
+            switch(block) {
+                case 'B1': return 'Módu. 1: Proceso & Capacidad';
+                case 'B2': return 'Módu. 2: Mecánica & Materiales';
+                case 'B3': return 'Módu. 3: Electricidad & Control';
+                case 'B4': return 'Módu. 4: Muestreo, Tolerancias & NDT';
+                default: return 'General';
+            }
+        }
+
+        // Modal Datasheet Generator
+        function toggleDatasheetModal() {
+            const modal = document.getElementById('datasheetModal');
+            modal.classList.toggle('hidden');
+        }
+
+        function updateDatasheetView() {
+            const brand = document.getElementById('brandSelect').value;
+            const hp = document.getElementById('hpSelect').value;
+            
+            document.getElementById('dsBrand').innerText = brand;
+            document.getElementById('dsHp').innerText = `${hp} HP / ${(hp * 0.7457).toFixed(1)} kW`;
+
+            const container = document.getElementById('dsBlocksContainer');
+            container.innerHTML = '';
+
+            const blocks = [
+                { id: 'B1', title: 'BLOQUE 1: Variables de Proceso, Capacidad y Rendimiento (1 a 20)' },
+                { id: 'B2', title: 'BLOQUE 2: Variables Mecánicas y Materiales (21 a 45)' },
+                { id: 'B3', title: 'BLOQUE 3: Variables Eléctricas y de Control (46 a 65)' },
+                { id: 'B4', title: 'BLOQUE 4: Montaje, Tolerancias, NDT y Mantenimiento Avanzado (66 a 85)' }
+            ];
+
+            blocks.forEach(b => {
+                const blockDiv = document.createElement('div');
+                blockDiv.className = 'bg-slate-900/80 p-4 rounded-xl border border-cardborder space-y-3';
+                
+                let html = `<h4 class="font-sans font-bold text-indigo-400 text-xs uppercase tracking-wider border-b border-cardborder pb-2">${b.title}</h4>`;
+                html += `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-[11px]">`;
+
+                masterVariables.filter(v => v.block === b.id).forEach(v => {
+                    html += `
+                        <div class="bg-slate-950 p-2 rounded border border-cardborder/40">
+                            <span class="text-slate-500 block text-[9px] font-mono">${v.code} - ${v.top8 ? '★' : ''}</span>
+                            <span class="text-slate-200 font-sans font-semibold block text-[11px] truncate">${v.name}</span>
+                            <span class="text-amber-400 font-mono text-[10px] block mt-0.5">${v.accept} (${v.unit})</span>
+                        </div>
+                    `;
+                });
+
+                html += `</div>`;
+                blockDiv.innerHTML = html;
+                container.appendChild(blockDiv);
+            });
+        }
+    </script>
+</body>
+</html>
